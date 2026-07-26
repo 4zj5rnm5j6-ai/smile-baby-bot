@@ -8,10 +8,23 @@ load_dotenv()
 
 print("anthropic version:", getattr(anthropic, "__version__", "unknown"))
 
-bot = telebot.TeleBot(os.getenv("TELEGRAM_TOKEN"))
+# Проверяем обязательные переменные окружения и выводим понятные ошибки
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+if not TELEGRAM_TOKEN:
+    raise RuntimeError(
+        "Переменная окружения TELEGRAM_TOKEN не задана. Установите её в Railway (production) и сделайте redeploy."
+    )
+
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+if not ANTHROPIC_API_KEY:
+    raise RuntimeError(
+        "Переменная окружения ANTHROPIC_API_KEY не задана. Установите её в Railway (production) и сделайте redeploy."
+    )
+
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 # Robust Anthropic client initialization to support multiple SDK versions
-api_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY".lower())
+api_key = ANTHROPIC_API_KEY
 ClientClass = getattr(anthropic, "Anthropic", None) or getattr(anthropic, "Client", None)
 
 if ClientClass is None:
@@ -28,8 +41,8 @@ if ClientClass is None:
 try:
     sig = signature(ClientClass)
     params = sig.parameters
-    if "api_key" in params or "api_key" in (p.lower() for p in params):
-        client = ClientClass(api_key=api_key) if api_key else ClientClass()
+    if "api_key" in params or any(p.lower() == "api_key" for p in params):
+        client = ClientClass(api_key=api_key)
     else:
         client = ClientClass()
 except Exception:
