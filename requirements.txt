@@ -1,5 +1,0 @@
-pyTelegramBotAPI==4.18.0
-anthropic==0.31.0
-dropbox==11.36.2
-setuptools
-python-dotenv==1.0.0
